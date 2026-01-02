@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Genre;
+use App\Domain\Manga\Models\Genre;
 use Illuminate\Database\Seeder;
 
 /**

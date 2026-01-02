@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace App\Shared\Traits;
 
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

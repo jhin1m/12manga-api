@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Author;
-use App\Models\Chapter;
-use App\Models\ChapterImage;
-use App\Models\Genre;
-use App\Models\MangaSeries;
-use App\Models\User;
+use App\Domain\Manga\Models\Author;
+use App\Domain\Manga\Models\Chapter;
+use App\Domain\Manga\Models\ChapterImage;
+use App\Domain\Manga\Models\Genre;
+use App\Domain\Manga\Models\MangaSeries;
+use App\Domain\User\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -150,8 +150,8 @@ class MangaSeeder extends Seeder
     /**
      * Create a manga series with all its relations.
      *
-     * @param array<string, mixed> $data
-     * @param \Illuminate\Database\Eloquent\Collection<int, Genre> $genres
+     * @param  array<string, mixed>  $data
+     * @param  \Illuminate\Database\Eloquent\Collection<int, Genre>  $genres
      */
     private function createMangaWithRelations(
         array $data,
@@ -202,7 +202,7 @@ class MangaSeeder extends Seeder
             'manga_series_id' => $manga->id,
             'uploader_id' => $uploader->id,
             'number' => $chapterNumber,
-            'title' => 'Chapter ' . $chapterNumber,
+            'title' => 'Chapter '.$chapterNumber,
             'is_approved' => true, // Sample data is pre-approved
         ]);
 

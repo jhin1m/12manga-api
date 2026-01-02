@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Domain\Manga\Models;
 
+use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +27,6 @@ use Spatie\Sluggable\SlugOptions;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
- *
  * @property-read MangaSeries $mangaSeries
  * @property-read User $uploader
  * @property-read \Illuminate\Database\Eloquent\Collection<int, ChapterImage> $images
@@ -81,7 +81,8 @@ class Chapter extends Model
             ->generateSlugsFrom(function (Chapter $model): string {
                 // Get manga title if loaded, otherwise use manga_series_id
                 $mangaTitle = $model->mangaSeries?->title ?? 'manga';
-                return $mangaTitle . ' ' . $model->number;
+
+                return $mangaTitle.' '.$model->number;
             })
             ->saveSlugsTo('slug');
     }
@@ -127,7 +128,7 @@ class Chapter extends Model
      * - Public API should only show approved chapters
      * - Admins can see all chapters via without this scope
      *
-     * @param Builder<Chapter> $query
+     * @param  Builder<Chapter>  $query
      */
     public function scopeApproved(Builder $query): Builder
     {
@@ -140,7 +141,7 @@ class Chapter extends Model
      * Why this scope?
      * - Admin moderation queue shows only unapproved chapters
      *
-     * @param Builder<Chapter> $query
+     * @param  Builder<Chapter>  $query
      */
     public function scopePending(Builder $query): Builder
     {

@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Domain\Manga\Models;
 
+use App\Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,7 +29,6 @@ use Spatie\Sluggable\SlugOptions;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
- *
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Author> $authors
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Genre> $genres
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Chapter> $chapters
@@ -145,7 +145,7 @@ class MangaSeries extends Model
      * 2. JSON_SEARCH for searching within alt_titles JSON field
      * 3. Falls back to LIKE if not using MySQL
      *
-     * @param Builder<MangaSeries> $query
+     * @param  Builder<MangaSeries>  $query
      */
     public function scopeSearch(Builder $query, string $keyword): Builder
     {
@@ -164,18 +164,18 @@ class MangaSeries extends Model
                     [$keyword]
                 )
                 // OR search in alt_titles JSON
-                ->orWhereRaw(
-                    'JSON_SEARCH(alt_titles, "one", ?, NULL, "$.*") IS NOT NULL',
-                    ['%' . $keyword . '%']
-                );
+                    ->orWhereRaw(
+                        'JSON_SEARCH(alt_titles, "one", ?, NULL, "$.*") IS NOT NULL',
+                        ['%'.$keyword.'%']
+                    );
             });
         }
 
         // Fallback for SQLite/other databases: LIKE search
         return $query->where(function (Builder $q) use ($keyword) {
-            $q->where('title', 'LIKE', '%' . $keyword . '%')
-                ->orWhere('description', 'LIKE', '%' . $keyword . '%')
-                ->orWhere('alt_titles', 'LIKE', '%' . $keyword . '%');
+            $q->where('title', 'LIKE', '%'.$keyword.'%')
+                ->orWhere('description', 'LIKE', '%'.$keyword.'%')
+                ->orWhere('alt_titles', 'LIKE', '%'.$keyword.'%');
         });
     }
 }

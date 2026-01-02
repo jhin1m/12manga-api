@@ -1,36 +1,115 @@
-# Laravel API Kit
+# Manga Reader API
 
-A production-ready, API-only Laravel 12 starter kit following the 2024-2025 REST API ecosystem best practices. No frontend dependencies - purely headless API for mobile apps, SPAs, or microservices.
+A production-ready manga reading platform API built with Laravel 12, following Domain-Driven Design (DDD) principles. Based on [Laravel API Kit](https://github.com/Grazulex/laravel-api-kit) with extended features for manga management, reading tracking, and community interactions.
 
 [![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-blue)](https://php.net)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-red)](https://laravel.com)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-## Features
+## 🎯 Project Overview
 
+A headless API for manga reading platforms supporting:
+- **Manga browsing & reading** - Browse, search, and read manga with chapter management
+- **User management** - Profile, reading history, bookmarks/follows
+- **Community features** - Comments, ratings, and reviews
+- **Admin panel** - Content moderation and user management
+- **Multi-language support** - Alternative titles in multiple languages
+
+## ✨ Features
+
+### Core Features (From Laravel API Kit)
 - **API-Only** - No Blade, Vite, or frontend assets
 - **Token Authentication** - Laravel Sanctum for mobile/SPA auth
-- **API Versioning** - URI-based versioning with deprecation support via [grazulex/laravel-apiroute](https://github.com/Grazulex/laravel-apiroute)
-- **Query Building** - Filtering, sorting, includes via [spatie/laravel-query-builder](https://github.com/spatie/laravel-query-builder)
-- **Data Objects** - Type-safe DTOs via [spatie/laravel-data](https://github.com/spatie/laravel-data)
-- **Auto Documentation** - Zero-annotation OpenAPI 3.1 via [dedoc/scramble](https://github.com/dedoc/scramble)
-- **Modern Testing** - Pest PHP with Laravel HTTP testing
-- **Rate Limiting** - Configurable per-route rate limiters
+- **API Versioning** - URI-based versioning via [grazulex/laravel-apiroute](https://github.com/Grazulex/laravel-apiroute)
+- **Query Building** - Advanced filtering, sorting via [spatie/laravel-query-builder](https://github.com/spatie/laravel-query-builder)
+- **Auto Documentation** - OpenAPI 3.1 via [dedoc/scramble](https://github.com/dedoc/scramble)
+- **Modern Testing** - Pest PHP testing framework
 - **Standardized Responses** - Consistent JSON response format
 
-## Requirements
+### Manga-Specific Features
+- **Manga Management** - CRUD operations with cover images, genres, authors
+- **Chapter System** - Chapter upload with page ordering and approval workflow
+- **Reading Progress** - Track user reading history and last-read page
+- **Follow System** - Users can follow manga series for updates
+- **Comment System** - Nested comments on manga and chapters
+- **Rating & Reviews** - 5-star rating system with reviews
+- **Search & Filter** - Full-text search with genre, status, and type filters
+- **Image Processing** - Cover upload with automatic resizing and optimization
+- **Moderation** - Chapter approval system for content quality
 
-- Docker & Docker Compose
-- Or: PHP 8.3+, Composer 2.x
+## 🏗️ Architecture
 
-## Quick Start
+This project follows **Domain-Driven Design (DDD) Lite** principles with three main domains:
 
-### With Docker (Recommended)
+```
+app/
+├── Domain/
+│   ├── Manga/          # Core business - manga, chapters, genres, authors
+│   ├── User/           # User profiles, follows, reading history
+│   └── Community/      # Social features - comments, ratings
+├── Http/               # API Layer - Controllers, Requests, Resources
+└── Shared/             # Shared services - Image processing, caching
+```
+
+### Why DDD?
+
+- **Clear boundaries** - Each domain is self-contained and focused
+- **Easy to scale** - Add new domains without affecting existing code
+- **Team-friendly** - Multiple developers can work on different domains
+- **Microservice-ready** - Easy to extract domains into separate services later
+
+## 📊 Database Schema
+
+### Current Tables (Implemented)
+
+**Users & Authentication**
+- `users` - User accounts with profile fields (avatar, bio, slug)
+- `personal_access_tokens` - Sanctum API tokens
+- `password_reset_tokens` - Password reset functionality
+- `sessions` - User session management
+
+**Permissions** (via Spatie)
+- `permissions` - Permission definitions
+- `roles` - Role definitions
+- `model_has_permissions` - User/Model permissions
+- `model_has_roles` - User/Model roles
+- `role_has_permissions` - Role permissions mapping
+
+**Manga Domain**
+- `manga_series` - Main manga information with cover, status, ratings
+- `chapters` - Chapter information with approval workflow
+- `chapter_images` - Chapter pages with ordering
+- `genres` - Manga genres (Action, Romance, etc.)
+- `authors` - Manga authors/artists
+
+**Pivot Tables**
+- `author_manga_series` - Many-to-many: authors ↔ manga
+- `genre_manga_series` - Many-to-many: genres ↔ manga
+- `follows` - User follows manga series
+
+**System Tables**
+- `cache`, `cache_locks` - Application caching
+- `jobs`, `job_batches`, `failed_jobs` - Queue system
+
+### Planned Tables (To Be Implemented)
+
+**Community Features**
+- `comments` - User comments on manga/chapters with nested replies
+- `ratings` - User ratings (1-5 stars) for manga
+- `reading_histories` - Track reading progress per chapter
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker & Docker Compose (recommended)
+- Or: PHP 8.3+, Composer 2.x, MySQL/PostgreSQL
+
+### Installation with Docker
 
 ```bash
 # Clone the repository
-git clone https://github.com/grazulex/laravel-api-kit.git
-cd laravel-api-kit
+git clone <repository-url>
+cd manga-reader-api
 
 # Copy environment file
 cp .env.example .env
@@ -48,582 +127,511 @@ docker compose run --rm app php artisan key:generate
 # Run migrations
 docker compose run --rm app php artisan migrate
 
+# Link storage for file uploads
+docker compose run --rm app php artisan storage:link
+
+# (Optional) Seed sample data
+docker compose run --rm app php artisan db:seed
+
 # Run tests to verify installation
 docker compose run --rm app ./vendor/bin/pest
 ```
 
-### Without Docker
+### Installation without Docker
 
 ```bash
 # Clone and install
-git clone https://github.com/grazulex/laravel-api-kit.git
-cd laravel-api-kit
+git clone <repository-url>
+cd manga-reader-api
 composer install
 
 # Configure
 cp .env.example .env
 php artisan key:generate
 
-# Database (SQLite by default)
+# Database setup
 touch database/database.sqlite
 php artisan migrate
+php artisan storage:link
 
 # Verify
 ./vendor/bin/pest
 ```
 
-## API Documentation
+## 📚 API Documentation
 
 Once running, access the auto-generated documentation:
 
 - **Swagger UI**: [http://localhost:8080/docs/api](http://localhost:8080/docs/api)
 - **OpenAPI JSON**: [http://localhost:8080/docs/api.json](http://localhost:8080/docs/api.json)
 
-## Authentication
+## 🔐 Authentication
 
-This kit uses **Laravel Sanctum** with token-based authentication (ideal for mobile apps and third-party API consumers).
+Uses Laravel Sanctum for token-based authentication.
 
-### Register a New User
-
+### Register
 ```bash
-curl -X POST http://localhost:8080/api/v1/register \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -d '{
-    "name": "John Doe",
-    "email": "john@example.com",
-    "password": "password123",
-    "password_confirmation": "password123"
-  }'
+POST /api/v1/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "password_confirmation": "password123"
+}
 ```
 
-**Response:**
+### Login
+```bash
+POST /api/v1/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+**Response includes token:**
 ```json
 {
   "success": true,
-  "message": "User registered successfully",
   "data": {
-    "user": {
-      "id": 1,
-      "name": "John Doe",
-      "email": "john@example.com",
-      "created_at": "2025-01-15T10:30:00+00:00"
-    },
+    "user": { ... },
     "token": "1|abc123..."
   }
 }
 ```
 
-### Login
-
+### Authenticated Requests
+Include token in Authorization header:
 ```bash
-curl -X POST http://localhost:8080/api/v1/login \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -d '{
-    "email": "john@example.com",
-    "password": "password123"
-  }'
+Authorization: Bearer 1|abc123...
 ```
 
-### Using the Token
+## 🛣️ API Endpoints
 
-Include the token in the `Authorization` header for protected routes:
+### Public Endpoints
 
-```bash
-curl -X GET http://localhost:8080/api/v1/me \
-  -H "Authorization: Bearer 1|abc123..." \
-  -H "Accept: application/json"
+#### Manga Browsing
+```
+GET    /api/v1/manga                    # List all manga (with filters)
+GET    /api/v1/manga/popular            # Popular manga
+GET    /api/v1/manga/latest             # Latest updates
+GET    /api/v1/manga/search             # Search manga
+GET    /api/v1/manga/{slug}             # Manga details
+GET    /api/v1/manga/{slug}/chapters    # List chapters
+GET    /api/v1/manga/{slug}/chapters/{chapter}  # Chapter pages
+
+GET    /api/v1/genres                   # List genres
+GET    /api/v1/authors                  # List authors
 ```
 
-### Logout
-
+#### Query Examples
 ```bash
-curl -X POST http://localhost:8080/api/v1/logout \
-  -H "Authorization: Bearer 1|abc123..." \
-  -H "Accept: application/json"
+# Filter by genre
+GET /api/v1/manga?filter[genre]=action
+
+# Search by title
+GET /api/v1/manga/search?q=one+piece
+
+# Sort by popularity
+GET /api/v1/manga?sort=-views_count
+
+# Filter by status
+GET /api/v1/manga?filter[status]=ongoing
+
+# Combine filters
+GET /api/v1/manga?filter[genre]=romance&filter[status]=completed&sort=-rating
 ```
 
-## API Endpoints
+### Protected Endpoints (Require Authentication)
 
-### Version 1 (`/api/v1`)
+#### User Profile & Preferences
+```
+GET    /api/v1/user/profile             # Get profile
+PUT    /api/v1/user/profile             # Update profile
+POST   /api/v1/user/profile/avatar      # Upload avatar
 
-| Method | Endpoint    | Auth | Description              | Rate Limit |
-|--------|-------------|------|--------------------------|------------|
-| POST   | /register   | No   | Register new user        | 5/min      |
-| POST   | /login      | No   | Get authentication token | 5/min      |
-| POST   | /logout     | Yes  | Revoke current token     | 60/min     |
-| GET    | /me         | Yes  | Get current user profile | 60/min     |
+GET    /api/v1/user/follows             # My followed manga
+POST   /api/v1/user/follows/{manga}     # Follow manga
+DELETE /api/v1/user/follows/{manga}     # Unfollow manga
 
-## Response Format
+GET    /api/v1/user/history             # Reading history
+POST   /api/v1/user/history/{chapter}   # Update progress
+DELETE /api/v1/user/history/{manga}     # Clear history
+```
 
-All API responses follow a consistent format:
+#### Community Features
+```
+# Comments
+GET    /api/v1/manga/{manga}/comments           # List comments
+POST   /api/v1/manga/{manga}/comments           # Add comment
+PUT    /api/v1/manga/{manga}/comments/{id}      # Edit comment
+DELETE /api/v1/manga/{manga}/comments/{id}      # Delete comment
+POST   /api/v1/manga/{manga}/comments/{id}/like # Like comment
 
-### Success Response
+# Ratings
+POST   /api/v1/manga/{manga}/rate       # Rate manga (1-5)
+GET    /api/v1/manga/{manga}/ratings    # View ratings
+```
 
-```json
+### Admin Endpoints (Require Admin Role)
+
+```
+# Dashboard
+GET    /api/v1/admin/dashboard          # Stats overview
+
+# Manga Management
+POST   /api/v1/admin/manga              # Create manga
+PUT    /api/v1/admin/manga/{id}         # Update manga
+DELETE /api/v1/admin/manga/{id}         # Delete manga
+POST   /api/v1/admin/manga/{id}/chapters      # Upload chapter
+PUT    /api/v1/admin/manga/{id}/chapters/{id} # Edit chapter
+DELETE /api/v1/admin/manga/{id}/chapters/{id} # Delete chapter
+
+# User Management
+GET    /api/v1/admin/users              # List users
+POST   /api/v1/admin/users/{id}/ban     # Ban user
+POST   /api/v1/admin/users/{id}/unban   # Unban user
+```
+
+## 📦 Domain Structure
+
+### Manga Domain
+```
+app/Domain/Manga/
+├── Models/
+│   ├── MangaSeries.php      # Main manga entity
+│   ├── Chapter.php          # Chapter with approval workflow
+│   ├── ChapterImage.php     # Chapter pages
+│   ├── Genre.php            # Genre taxonomy
+│   └── Author.php           # Author/Artist
+├── Services/
+│   ├── MangaService.php     # Business logic for manga
+│   ├── ChapterService.php   # Chapter management
+│   └── SearchService.php    # Search functionality
+└── Repositories/
+    ├── MangaRepository.php  # Complex queries
+    └── ChapterRepository.php
+```
+
+### User Domain
+```
+app/Domain/User/
+├── Models/
+│   ├── User.php             # Extended with profile fields
+│   ├── Follow.php           # Manga follows
+│   └── ReadingHistory.php   # Reading progress (planned)
+└── Services/
+    ├── UserService.php      # Profile management
+    ├── FollowService.php    # Follow/unfollow logic
+    └── ReadingHistoryService.php # Track progress
+```
+
+### Community Domain
+```
+app/Domain/Community/
+├── Models/
+│   ├── Comment.php          # Nested comments (planned)
+│   └── Rating.php           # Ratings & reviews (planned)
+└── Services/
+    ├── CommentService.php   # Comment CRUD
+    └── RatingService.php    # Rating calculations
+```
+
+### Shared Services
+```
+app/Shared/
+├── Services/
+│   ├── ImageService.php     # Image upload & processing
+│   └── CacheService.php     # Cache management
+└── Traits/
+    ├── HasSlug.php          # Auto-generate slugs
+    └── HasViewsCount.php    # Track view counts
+```
+
+## 🔧 Key Features Implementation
+
+### 1. Image Upload & Processing
+```php
+// Automatic cover image optimization
+POST /api/v1/admin/manga
+Content-Type: multipart/form-data
+
 {
-  "success": true,
-  "message": "Operation successful",
-  "data": {
-    // Response data here
-  }
+  "title": "One Piece",
+  "cover_image": <file>,  # Auto-resized to 500x700
+  ...
 }
 ```
 
-### Error Response
-
-```json
+### 2. Reading Progress Tracking
+```php
+// Automatically track last-read page
+POST /api/v1/user/history/{chapter}
 {
-  "success": false,
-  "message": "Error description",
-  "errors": {
-    "field": ["Validation error message"]
-  }
+  "last_page": 15,
+  "completed": false
+}
+
+// Continue reading from last position
+GET /api/v1/user/continue-reading
+```
+
+### 3. Chapter Approval Workflow
+```php
+// Chapters require approval before public display
+$chapter->is_approved = false; // Default
+
+// Admin approves
+PUT /api/v1/admin/chapters/{id}
+{
+  "is_approved": true
 }
 ```
 
-### HTTP Status Codes
-
-| Code | Description |
-|------|-------------|
-| 200  | Success |
-| 201  | Resource created |
-| 204  | No content |
-| 400  | Bad request |
-| 401  | Unauthorized |
-| 403  | Forbidden |
-| 404  | Not found |
-| 422  | Validation error |
-| 429  | Too many requests |
-| 500  | Server error |
-
-## Project Structure
-
-```
-laravel-api-kit/
-├── app/
-│   ├── Actions/                    # Single-purpose action classes
-│   ├── DTOs/                       # Data Transfer Objects (spatie/laravel-data)
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   └── Api/
-│   │   │       ├── ApiController.php      # Base controller with ApiResponse
-│   │   │       └── V1/                    # Version 1 controllers
-│   │   │           └── AuthController.php
-│   │   ├── Requests/
-│   │   │   └── Api/V1/                    # Form Requests per version
-│   │   │       ├── LoginRequest.php
-│   │   │       └── RegisterRequest.php
-│   │   └── Resources/                     # API Resources
-│   │       └── UserResource.php
-│   ├── Models/
-│   │   └── User.php                       # With HasApiTokens trait
-│   ├── Providers/
-│   │   └── AppServiceProvider.php         # Rate limiting config
-│   ├── Services/                          # Business logic services
-│   └── Traits/
-│       └── ApiResponse.php                # Standardized responses
-├── config/
-│   ├── apiroute.php                       # API versioning config
-│   ├── cors.php                           # CORS settings
-│   ├── sanctum.php                        # Token auth config
-│   └── scramble.php                       # API docs config
-├── routes/
-│   └── api.php                            # API routes with versioning
-├── tests/
-│   └── Feature/Api/V1/
-│       └── AuthTest.php                   # Authentication tests
-├── docker-compose.yml
-├── Dockerfile
-└── CLAUDE.md                              # AI assistant instructions
-```
-
-## API Versioning
-
-This kit uses [grazulex/laravel-apiroute](https://github.com/Grazulex/laravel-apiroute) for API versioning with support for:
-
-- **URI Path** (default): `/api/v1/users`, `/api/v2/users`
-- **Header**: `X-API-Version: 2`
-- **Query Parameter**: `?api_version=2`
-- **Accept Header**: `Accept: application/vnd.api.v2+json`
-
-### Adding a New API Version
-
-1. Create controllers in `app/Http/Controllers/Api/V2/`
-2. Create requests in `app/Http/Requests/Api/V2/`
-3. Update `routes/api.php`:
-
+### 4. Nested Comments System
 ```php
-use Grazulex\ApiRoute\Facades\ApiRoute;
-
-// Version 2 - New current version
-ApiRoute::version('v2', function () {
-    Route::post('register', [V2\AuthController::class, 'register']);
-    // ... more routes
-})->current();
-
-// Version 1 - Mark as deprecated
-ApiRoute::version('v1', function () {
-    Route::post('register', [V1\AuthController::class, 'register']);
-    // ... existing routes
-})->deprecated('2025-06-01')->sunset('2025-12-01');
-```
-
-### Deprecation Headers
-
-When accessing deprecated versions, responses include RFC-compliant headers:
-
-```http
-Deprecation: @1717200000
-Sunset: Sun, 01 Dec 2025 00:00:00 GMT
-Link: </api/v2>; rel="successor-version"
-```
-
-## Query Building
-
-Use [spatie/laravel-query-builder](https://spatie.be/docs/laravel-query-builder) for filtering, sorting, and including relationships:
-
-```php
-use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\QueryBuilder\AllowedFilter;
-
-// In your controller
-$users = QueryBuilder::for(User::class)
-    ->allowedFilters([
-        'name',
-        'email',
-        AllowedFilter::exact('id'),
-        AllowedFilter::scope('active'),
-    ])
-    ->allowedSorts(['name', 'created_at'])
-    ->allowedIncludes(['posts', 'comments'])
-    ->paginate();
-
-return UserResource::collection($users);
-```
-
-**Request examples:**
-```
-GET /api/v1/users?filter[name]=john
-GET /api/v1/users?sort=-created_at
-GET /api/v1/users?include=posts,comments
-GET /api/v1/users?filter[name]=john&sort=name&include=posts
-```
-
-## Data Transfer Objects
-
-Use [spatie/laravel-data](https://spatie.be/docs/laravel-data) for type-safe DTOs:
-
-```php
-// app/DTOs/UserData.php
-use Spatie\LaravelData\Data;
-
-class UserData extends Data
+// Reply to a comment
+POST /api/v1/manga/{manga}/comments
 {
-    public function __construct(
-        public string $name,
-        public string $email,
-        public ?string $password = null,
-    ) {}
-}
-
-// In controller - validates and transforms automatically
-public function store(UserData $data): JsonResponse
-{
-    $user = User::create($data->toArray());
-    return $this->created(UserResource::make($user));
+  "content": "Great manga!",
+  "parent_id": 123  # Optional - for replies
 }
 ```
 
-## Rate Limiting
-
-Configured in `app/Providers/AppServiceProvider.php`:
-
-| Limiter | Limit | Use Case |
-|---------|-------|----------|
-| `api` | 60/min | Default for all API routes |
-| `auth` | 5/min | Login/register (brute force protection) |
-| `authenticated` | 120/min | Logged-in users |
-
-### Applying Rate Limiters
-
+### 5. Advanced Search
 ```php
-// In routes/api.php
-Route::middleware('throttle:auth')->group(function () {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('register', [AuthController::class, 'register']);
-});
-
-Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function () {
-    // Protected routes with higher limits
-});
+// Full-text search with filters
+GET /api/v1/manga/search?q=naruto
+  &filter[genre]=action
+  &filter[status]=completed
+  &sort=-rating
+  &include=authors,genres
 ```
 
-### Rate Limit Headers
+## 🧪 Testing
 
-Responses include rate limit information:
-
-```http
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 59
-Retry-After: 60  # When limit exceeded
-```
-
-## Testing
-
-This kit uses [Pest PHP](https://pestphp.com/) for testing:
-
+### Run Tests
 ```bash
-# Run all tests
+# All tests
 docker compose run --rm app ./vendor/bin/pest
 
-# Run specific test file
-docker compose run --rm app ./vendor/bin/pest tests/Feature/Api/V1/AuthTest.php
+# Specific domain
+docker compose run --rm app ./vendor/bin/pest tests/Feature/Domain/Manga
 
-# Run with coverage
+# With coverage
 docker compose run --rm app ./vendor/bin/pest --coverage
-
-# Run in parallel
-docker compose run --rm app ./vendor/bin/pest --parallel
 ```
 
-### Writing Tests
-
-```php
-// tests/Feature/Api/V1/UserTest.php
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
-
-it('lists users for authenticated user', function () {
-    $user = User::factory()->create();
-    $token = $user->createToken('test')->plainTextToken;
-
-    User::factory()->count(5)->create();
-
-    $response = $this->withHeader('Authorization', "Bearer {$token}")
-        ->getJson('/api/v1/users');
-
-    $response->assertStatus(200)
-        ->assertJsonStructure([
-            'success',
-            'data' => [
-                '*' => ['id', 'name', 'email']
-            ]
-        ]);
-});
-
-it('requires authentication', function () {
-    $this->getJson('/api/v1/users')
-        ->assertStatus(401);
-});
+### Test Structure
+```
+tests/
+├── Feature/
+│   ├── Domain/
+│   │   ├── Manga/
+│   │   │   ├── MangaTest.php
+│   │   │   └── ChapterTest.php
+│   │   ├── User/
+│   │   │   └── FollowTest.php
+│   │   └── Community/
+│   │       └── CommentTest.php
+│   └── Api/
+│       └── V1/
+│           └── AuthTest.php
+└── Unit/
+    └── Services/
+        ├── MangaServiceTest.php
+        └── ImageServiceTest.php
 ```
 
-## Development Commands
+## 🚀 Deployment
 
+### Production Checklist
+
+**Environment**
+- [ ] Set `APP_ENV=production` and `APP_DEBUG=false`
+- [ ] Configure production database (MySQL/PostgreSQL)
+- [ ] Set proper `APP_URL`
+- [ ] Configure `SANCTUM_STATEFUL_DOMAINS`
+- [ ] Set up file storage (S3/DO Spaces recommended)
+
+**Performance**
+- [ ] Enable opcache
+- [ ] Configure Redis for caching
+- [ ] Set up queue workers
+- [ ] Configure CDN for images
+- [ ] Enable GZIP compression
+
+**Security**
+- [ ] Enable HTTPS
+- [ ] Review CORS settings
+- [ ] Set proper rate limits
+- [ ] Configure backup strategy
+- [ ] Set up monitoring & logging
+
+**Database**
+- [ ] Run migrations: `php artisan migrate --force`
+- [ ] Link storage: `php artisan storage:link`
+- [ ] Seed initial data: `php artisan db:seed --class=GenreSeeder`
+
+## 📈 Roadmap
+
+### Phase 1: Foundation (Current)
+- [x] Database schema design
+- [x] User authentication
+- [x] Basic CRUD for manga
+- [ ] Image upload system
+- [ ] Chapter management
+
+### Phase 2: Core Features
+- [ ] Reading progress tracking
+- [ ] Follow system
+- [ ] Search & filters
+- [ ] Admin panel basics
+
+### Phase 3: Community
+- [ ] Comment system
+- [ ] Rating & reviews
+- [ ] User profiles
+- [ ] Notifications
+
+### Phase 4: Advanced
+- [ ] Recommendation engine
+- [ ] Reading lists
+- [ ] Social features (shares, likes)
+- [ ] Mobile app API optimization
+
+### Phase 5: Scale
+- [ ] Caching optimization
+- [ ] CDN integration
+- [ ] Microservices extraction
+- [ ] Real-time features (WebSocket)
+
+## 🛠️ Development
+
+### Code Style
 ```bash
-# Code formatting (Laravel Pint)
+# Format code
 docker compose run --rm app ./vendor/bin/pint
 
-# Check code style without fixing
+# Check without fixing
 docker compose run --rm app ./vendor/bin/pint --test
-
-# List all routes
-docker compose run --rm app php artisan route:list
-
-# Clear all caches
-docker compose run --rm app php artisan optimize:clear
-
-# Generate IDE helper files (if using Laravel IDE Helper)
-docker compose run --rm app php artisan ide-helper:generate
-docker compose run --rm app php artisan ide-helper:models -N
-
-# Export OpenAPI spec to file
-docker compose run --rm app php artisan scramble:export
 ```
 
-## Environment Configuration
+### Useful Commands
+```bash
+# Create new migration
+php artisan make:migration create_comments_table
 
-Key `.env` variables:
+# Create model with factory
+php artisan make:model Comment -mf
+
+# Create controller
+php artisan make:controller Api/V1/CommentController
+
+# Create request
+php artisan make:request StoreCommentRequest
+
+# Create resource
+php artisan make:resource CommentResource
+
+# Clear caches
+php artisan optimize:clear
+
+# List routes
+php artisan route:list
+```
+
+## 📝 Environment Variables
+
+Key `.env` configurations:
 
 ```env
 # Application
-APP_NAME="Laravel API Kit"
+APP_NAME="Manga Reader API"
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8080
 
-# Database (SQLite for development)
-DB_CONNECTION=sqlite
-DB_DATABASE=/var/www/database/database.sqlite
+# Database
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=manga_reader
+DB_USERNAME=laravel
+DB_PASSWORD=secret
 
-# For MySQL/PostgreSQL
-# DB_CONNECTION=mysql
-# DB_HOST=mysql
-# DB_PORT=3306
-# DB_DATABASE=laravel_api_kit
-# DB_USERNAME=laravel
-# DB_PASSWORD=secret
+# File Storage
+FILESYSTEM_DISK=public
+# For production: use s3, do, etc.
 
-# Sanctum
-SANCTUM_STATEFUL_DOMAINS=localhost,localhost:3000,127.0.0.1
-
-# API Versioning
-API_VERSION_STRATEGY=uri
-API_DEFAULT_VERSION=latest
+# Image Processing
+MANGA_COVER_WIDTH=500
+MANGA_COVER_HEIGHT=700
+CHAPTER_IMAGE_MAX_WIDTH=1200
 
 # Rate Limiting
 API_RATE_LIMIT=60
+AUTH_RATE_LIMIT=5
 
-# Documentation
-API_DOCS_URL=http://localhost:8080/docs/api
+# Sanctum
+SANCTUM_STATEFUL_DOMAINS=localhost,localhost:3000
 ```
 
-## Deployment
-
-### Production Checklist
-
-- [ ] Set `APP_ENV=production` and `APP_DEBUG=false`
-- [ ] Configure proper database (MySQL/PostgreSQL)
-- [ ] Set `APP_URL` to your production URL
-- [ ] Configure `SANCTUM_STATEFUL_DOMAINS` for your frontend domains
-- [ ] Review and tighten CORS settings in `config/cors.php`
-- [ ] Set up proper rate limiting for production load
-- [ ] Configure caching (Redis recommended)
-- [ ] Set up queue worker for background jobs
-- [ ] Enable HTTPS and update URLs
-
-### Docker Production
-
-```dockerfile
-# Example production Dockerfile additions
-FROM php:8.3-fpm-alpine
-
-# Install opcache for performance
-RUN docker-php-ext-install opcache
-
-# Production PHP settings
-COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/
-COPY docker/php/php.ini /usr/local/etc/php/conf.d/
-```
-
-## Extending the Kit
-
-### Adding a New Resource (CRUD Example)
-
-1. **Create Model & Migration:**
-```bash
-docker compose run --rm app php artisan make:model Post -m
-```
-
-2. **Create Controller:**
-```php
-// app/Http/Controllers/Api/V1/PostController.php
-namespace App\Http\Controllers\Api\V1;
-
-use App\Http\Controllers\Api\ApiController;
-use App\Http\Resources\PostResource;
-use App\Models\Post;
-use Spatie\QueryBuilder\QueryBuilder;
-
-class PostController extends ApiController
-{
-    public function index()
-    {
-        $posts = QueryBuilder::for(Post::class)
-            ->allowedFilters(['title', 'status'])
-            ->allowedSorts(['title', 'created_at'])
-            ->allowedIncludes(['author', 'comments'])
-            ->paginate();
-
-        return $this->success(PostResource::collection($posts));
-    }
-
-    public function show(Post $post)
-    {
-        return $this->success(new PostResource($post));
-    }
-
-    // ... store, update, destroy methods
-}
-```
-
-3. **Create Resource:**
-```php
-// app/Http/Resources/PostResource.php
-namespace App\Http\Resources;
-
-use Illuminate\Http\Resources\Json\JsonResource;
-
-class PostResource extends JsonResource
-{
-    public function toArray($request): array
-    {
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'content' => $this->content,
-            'author' => new UserResource($this->whenLoaded('author')),
-            'created_at' => $this->created_at?->toIso8601String(),
-        ];
-    }
-}
-```
-
-4. **Add Routes:**
-```php
-// routes/api.php
-ApiRoute::version('v1', function () {
-    // ... existing routes
-
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::apiResource('posts', PostController::class);
-    });
-})->current();
-```
-
-5. **Create Tests:**
-```php
-// tests/Feature/Api/V1/PostTest.php
-uses(RefreshDatabase::class);
-
-it('lists posts', function () {
-    $user = User::factory()->create();
-    Post::factory()->count(3)->create();
-
-    $this->actingAs($user)
-        ->getJson('/api/v1/posts')
-        ->assertStatus(200)
-        ->assertJsonCount(3, 'data');
-});
-```
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Follow DDD structure - place files in correct domain
+4. Write tests for new features
+5. Ensure code passes `./vendor/bin/pint`
+6. Commit changes (`git commit -m 'Add amazing feature'`)
+7. Push to branch (`git push origin feature/amazing-feature`)
+8. Open Pull Request
 
-## License
+### Contribution Guidelines
+
+- Follow DDD principles - keep domains separated
+- Write tests for all new features
+- Update API documentation
+- Follow PSR-12 coding standards
+- Keep controllers thin - logic in services
+- Use type hints and return types
+- Add PHPDoc blocks for public methods
+
+## 📄 License
 
 This project is open-sourced software licensed under the [MIT license](LICENSE).
 
-## Credits
+## 🙏 Credits
 
+### Built With
 - [Laravel](https://laravel.com) - The PHP Framework
-- [Laravel Sanctum](https://laravel.com/docs/sanctum) - API Token Authentication
+- [Laravel Sanctum](https://laravel.com/docs/sanctum) - API Authentication
+- [Laravel API Kit](https://github.com/Grazulex/laravel-api-kit) - Base starter kit
 - [grazulex/laravel-apiroute](https://github.com/Grazulex/laravel-apiroute) - API Versioning
-- [spatie/laravel-query-builder](https://github.com/spatie/laravel-query-builder) - Query Building
-- [spatie/laravel-data](https://github.com/spatie/laravel-data) - Data Transfer Objects
+- [spatie/laravel-query-builder](https://github.com/spatie/laravel-query-builder) - Advanced Queries
+- [spatie/laravel-permission](https://github.com/spatie/laravel-permission) - Role & Permission
 - [dedoc/scramble](https://github.com/dedoc/scramble) - API Documentation
 - [Pest PHP](https://pestphp.com) - Testing Framework
 
-## Support
+### Inspiration
+- [MangaDex API](https://api.mangadex.org/docs/) - API design reference
+- [Anilist API](https://anilist.gitbook.io/anilist-apiv2-docs/) - GraphQL patterns
+- Various manga reader platforms
 
-- [Documentation](https://github.com/grazulex/laravel-api-kit/wiki)
-- [Issues](https://github.com/grazulex/laravel-api-kit/issues)
-- [Discussions](https://github.com/grazulex/laravel-api-kit/discussions)
+## 📞 Support
+
+- **Documentation**: [Link to Wiki/Docs]
+- **Issues**: [GitHub Issues](issues)
+- **Discussions**: [GitHub Discussions](discussions)
+- **Discord**: [Community Server] (if applicable)
+
+---
+
+**Status**: 🚧 In Development - Database schema implemented, API endpoints in progress
+
+**Last Updated**: January 2026

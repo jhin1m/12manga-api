@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Domain\User\Models;
 
+use App\Domain\Manga\Models\Chapter;
+use App\Domain\Manga\Models\MangaSeries;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -29,7 +31,6 @@ use Spatie\Sluggable\SlugOptions;
  * @property string|null $remember_token
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- *
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Chapter> $uploadedChapters
  * @property-read \Illuminate\Database\Eloquent\Collection<int, MangaSeries> $followedManga
  */
@@ -37,6 +38,7 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens;
+
     use HasFactory;
     use HasRoles;
     use HasSlug;
@@ -91,6 +93,16 @@ class User extends Authenticatable
         return SlugOptions::create()
             ->generateSlugsFrom('name')
             ->saveSlugsTo('profile_slug');
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory<static>
+     */
+    protected static function newFactory()
+    {
+        return UserFactory::new();
     }
 
     /**
