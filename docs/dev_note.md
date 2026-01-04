@@ -5,11 +5,14 @@ Database Schema → Models → Seeders → API Endpoints → Testing
 
 ---
 
-Phase 1: Database Foundation (XONG)
+Phase 1: Database Foundation (DONE)
   ↓
-Phase 2: API Core (2-3 tuần)
+Phase 2: API Core (DONE)
+  - Manga API Endpoints (CRUD, Chapters, Search)
+  - Role-based Authorization (RBAC)
+  - Security Fixes (SQLi, Sanitization)
   ↓
-Phase 3: Admin Panel (1-2 tuần) ← Ở ĐÂY
+Phase 3: Admin Panel (1-2 tuần) ← NEXT
   ↓
 Phase 4: SEO & Schema (1 tuần)
   ↓

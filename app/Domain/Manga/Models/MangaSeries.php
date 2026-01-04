@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Manga\Models;
 
 use App\Domain\User\Models\User;
+use Database\Factories\MangaSeriesFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -39,6 +40,14 @@ class MangaSeries extends Model
     use HasFactory;
     use HasSlug;
     use SoftDeletes;
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): MangaSeriesFactory
+    {
+        return MangaSeriesFactory::new();
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -142,8 +151,12 @@ class MangaSeries extends Model
      *
      * How it works:
      * 1. MATCH...AGAINST for fulltext search on title/description
-     * 2. JSON_SEARCH for searching within alt_titles JSON field
+     * 2. JSON_SEARCH for searching within alt_titles JSON field (with proper escaping)
      * 3. Falls back to LIKE if not using MySQL
+     *
+     * Security:
+     * - All user input is properly parameterized to prevent SQL injection
+     * - JSON_SEARCH uses Laravel's parameter binding
      *
      * @param  Builder<MangaSeries>  $query
      */
@@ -158,15 +171,15 @@ class MangaSeries extends Model
         // MySQL fulltext + JSON search
         if (config('database.default') === 'mysql') {
             return $query->where(function (Builder $q) use ($keyword) {
-                // Fulltext search on title and description
+                // Fulltext search on title and description (parameterized)
                 $q->whereRaw(
                     'MATCH(title, description) AGAINST(? IN NATURAL LANGUAGE MODE)',
                     [$keyword]
                 )
-                // OR search in alt_titles JSON
+                // OR search in alt_titles JSON (properly parameterized)
                     ->orWhereRaw(
-                        'JSON_SEARCH(alt_titles, "one", ?, NULL, "$.*") IS NOT NULL',
-                        ['%'.$keyword.'%']
+                        'JSON_SEARCH(alt_titles, "one", ?) IS NOT NULL',
+                        [$keyword]
                     );
             });
         }

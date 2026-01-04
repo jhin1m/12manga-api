@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Manga\Models;
 
 use App\Domain\User\Models\User;
+use Database\Factories\ChapterFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -36,6 +37,14 @@ class Chapter extends Model
     use HasFactory;
     use HasSlug;
     use SoftDeletes;
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): ChapterFactory
+    {
+        return ChapterFactory::new();
+    }
 
     /**
      * The attributes that are mass assignable.

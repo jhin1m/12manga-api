@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Manga\Models;
 
+use Database\Factories\ChapterImageFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,14 @@ use Illuminate\Support\Facades\Storage;
 class ChapterImage extends Model
 {
     use HasFactory;
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): ChapterImageFactory
+    {
+        return ChapterImageFactory::new();
+    }
 
     /**
      * The attributes that are mass assignable.
