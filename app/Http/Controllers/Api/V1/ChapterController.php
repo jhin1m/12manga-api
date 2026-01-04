@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Domain\Manga\Actions\ApproveChapterAction;
+use App\Domain\Manga\Actions\CreateChapterAction;
+use App\Domain\Manga\Actions\DeleteChapterAction;
+use App\Domain\Manga\Actions\RejectChapterAction;
+use App\Domain\Manga\Actions\UpdateChapterAction;
 use App\Domain\Manga\Models\Chapter;
 use App\Domain\Manga\Models\MangaSeries;
 use App\Domain\Manga\Services\ChapterService;
@@ -14,13 +18,16 @@ use App\Http\Requests\Api\V1\UpdateChapterRequest;
 use App\Http\Resources\ChapterResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class ChapterController extends ApiController
 {
     public function __construct(
         private readonly ChapterService $chapterService,
-        private readonly ApproveChapterAction $approveChapter
+        private readonly ApproveChapterAction $approveChapter,
+        private readonly CreateChapterAction $createChapter,
+        private readonly UpdateChapterAction $updateChapter,
+        private readonly DeleteChapterAction $deleteChapter,
+        private readonly RejectChapterAction $rejectChapter,
     ) {}
 
     /**
@@ -65,6 +72,8 @@ class ChapterController extends ApiController
 
     /**
      * Create new chapter (Admin only).
+     *
+     * Accepts multipart/form-data with image files.
      */
     public function store(StoreChapterRequest $request, string $slug): JsonResponse
     {
@@ -86,38 +95,19 @@ class ChapterController extends ApiController
         }
 
         try {
-            DB::beginTransaction();
-
-            // Create chapter
-            $chapter = $manga->chapters()->create([
+            // Delegate to action
+            $chapter = ($this->createChapter)($manga, [
                 'number' => $validated['number'],
                 'title' => $validated['title'] ?? null,
                 'uploader_id' => Auth::id(),
-                'is_approved' => false, // Default to pending
+                'images' => $request->file('images', []),
             ]);
-
-            // Add images if provided
-            if (isset($validated['images']) && is_array($validated['images'])) {
-                foreach ($validated['images'] as $imageData) {
-                    $chapter->images()->create([
-                        'path' => $imageData['path'],
-                        'order' => $imageData['order'],
-                    ]);
-                }
-            }
-
-            DB::commit();
-
-            // Load relationships for response
-            $chapter->load(['images', 'uploader']);
 
             return $this->created(
                 new ChapterResource($chapter),
                 'Chapter created successfully'
             );
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return $this->error('Failed to create chapter: '.$e->getMessage(), 500);
         }
     }
@@ -141,58 +131,31 @@ class ChapterController extends ApiController
 
         $validated = $request->validated();
 
+        // Check for duplicate if number is being changed
+        if (isset($validated['number']) && $validated['number'] != $chapter->number) {
+            $exists = $manga->chapters()
+                ->where('number', $validated['number'])
+                ->where('id', '!=', $chapter->id)
+                ->exists();
+
+            if ($exists) {
+                return $this->error('Chapter with this number already exists', 422);
+            }
+        }
+
         try {
-            DB::beginTransaction();
-
-            // Update chapter fields
-            if (isset($validated['number'])) {
-                // Check for duplicate if number is being changed
-                if ($validated['number'] != $chapter->number) {
-                    $exists = $manga->chapters()
-                        ->where('number', $validated['number'])
-                        ->where('id', '!=', $chapter->id)
-                        ->exists();
-
-                    if ($exists) {
-                        DB::rollBack();
-
-                        return $this->error('Chapter with this number already exists', 422);
-                    }
-                }
-                $chapter->number = $validated['number'];
-            }
-
-            if (isset($validated['title'])) {
-                $chapter->title = $validated['title'];
-            }
-
-            $chapter->save();
-
-            // Update images if provided
-            if (isset($validated['images']) && is_array($validated['images'])) {
-                // Delete existing images and create new ones
-                $chapter->images()->delete();
-
-                foreach ($validated['images'] as $imageData) {
-                    $chapter->images()->create([
-                        'path' => $imageData['path'],
-                        'order' => $imageData['order'],
-                    ]);
-                }
-            }
-
-            DB::commit();
-
-            // Load relationships for response
-            $chapter->load(['images', 'uploader']);
+            // Delegate to action
+            $chapter = ($this->updateChapter)($chapter, [
+                'number' => $validated['number'] ?? null,
+                'title' => $validated['title'] ?? null,
+                'images' => $request->file('images'),
+            ]);
 
             return $this->success(
                 new ChapterResource($chapter),
                 'Chapter updated successfully'
             );
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return $this->error('Failed to update chapter: '.$e->getMessage(), 500);
         }
     }
@@ -214,9 +177,13 @@ class ChapterController extends ApiController
             return $this->notFound('Chapter not found');
         }
 
-        $chapter->delete();
+        try {
+            ($this->deleteChapter)($chapter);
 
-        return $this->success(null, 'Chapter deleted successfully');
+            return $this->success(null, 'Chapter deleted successfully');
+        } catch (\Exception $e) {
+            return $this->error('Failed to delete chapter: '.$e->getMessage(), 500);
+        }
     }
 
     /**
@@ -244,5 +211,23 @@ class ChapterController extends ApiController
             new ChapterResource($chapter),
             'Chapter approved successfully'
         );
+    }
+
+    /**
+     * Reject a pending chapter (Admin only).
+     */
+    public function reject(Chapter $chapter): JsonResponse
+    {
+        if ($chapter->is_approved) {
+            return $this->error('Cannot reject an approved chapter', 422);
+        }
+
+        try {
+            ($this->rejectChapter)($chapter);
+
+            return $this->success(null, 'Chapter rejected successfully');
+        } catch (\Exception $e) {
+            return $this->error('Failed to reject chapter: '.$e->getMessage(), 500);
+        }
     }
 }

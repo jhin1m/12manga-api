@@ -19,6 +19,14 @@ class StoreChapterRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
+     * Image validation:
+     * - array: Multiple files in batch upload
+     * - max:100: Limit to 100 pages per chapter
+     * - file: Must be an actual uploaded file
+     * - image: Must be a valid image type
+     * - mimes: Restrict to common web formats
+     * - max:5120: 5MB per image (5 * 1024 KB)
+     *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
@@ -26,9 +34,15 @@ class StoreChapterRequest extends FormRequest
         return [
             'number' => ['required', 'numeric', 'min:0'],
             'title' => ['nullable', 'string', 'max:255'],
-            'images' => ['nullable', 'array'],
-            'images.*.path' => ['required_with:images', 'string'],
-            'images.*.order' => ['required_with:images', 'integer', 'min:0'],
+
+            // Image upload validation (replaces path-based approach)
+            'images' => ['nullable', 'array', 'max:100'],
+            'images.*' => [
+                'file',
+                'image',
+                'mimes:jpeg,jpg,png,webp,gif',
+                'max:5120', // 5MB per image
+            ],
         ];
     }
 
@@ -44,8 +58,11 @@ class StoreChapterRequest extends FormRequest
             'number.numeric' => 'Chapter number must be a valid number.',
             'number.min' => 'Chapter number must be at least 0.',
             'images.array' => 'Images must be an array.',
-            'images.*.path.required_with' => 'Each image must have a path.',
-            'images.*.order.required_with' => 'Each image must have an order.',
+            'images.max' => 'Maximum 100 images per chapter.',
+            'images.*.file' => 'Each image must be a valid file upload.',
+            'images.*.image' => 'Each file must be an image.',
+            'images.*.mimes' => 'Images must be JPEG, PNG, WebP, or GIF.',
+            'images.*.max' => 'Each image must not exceed 5MB.',
         ];
     }
 }

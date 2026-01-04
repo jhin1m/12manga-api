@@ -1,7 +1,7 @@
 # TODO - Manga Reader API
 
-> Missing features for Manga and Chapter domains based on PDR requirements.
-> Last updated: 2026-01-04
+> Progress tracking for Manga Reader API implementation.
+> Last updated: 2026-01-04 16:45 (Phase 2.5 Complete)
 
 ## Priority Legend
 - 🔴 **P1** - Critical, blocks core functionality
@@ -61,20 +61,22 @@
 
 ---
 
-## 📖 Chapter Domain (P1 - Remaining Tasks)
+## 📖 Chapter Domain - COMPLETED ✅
 
-### 🔴 Chapter Upload Actions
+### Chapter Upload Actions (P1)
 | Task | Status | Notes |
 |------|--------|-------|
-| `CreateChapterAction` creation | ⬜ | Handle images upload + ordering |
-| `UpdateChapterAction` creation | ⬜ | Handle images re-ordering |
-| `DeleteChapterAction` creation | ⬜ | Cleanup images from storage |
+| `CreateChapterAction` creation | ✅ | Batch upload with transaction safety |
+| `UpdateChapterAction` creation | ✅ | Image re-ordering + replacement |
+| `DeleteChapterAction` creation | ✅ | Cascade deletion with storage cleanup |
+| `ChapterImageStorageService` | ✅ | S3/local abstraction layer |
+| `ChapterImageStorageInterface` | ✅ | Storage contract for DI |
 
-### 🟡 Chapter Moderation
+### Chapter Moderation (P2)
 | Task | Status | Notes |
 |------|--------|-------|
-| `RejectChapterAction` creation | ⬜ | Delete or mark as rejected |
-| Reject endpoint `POST /chapters/{id}/reject` | ⬜ | Hook to `RejectChapterAction` |
+| `RejectChapterAction` creation | ✅ | Soft delete with reason tracking |
+| Reject endpoint integration | ✅ | Controller uses action class |
 
 ---
 
@@ -183,10 +185,11 @@ Placeholder services exist. **NO models or migrations**.
 | Task | Status | Notes |
 |------|--------|-------|
 | Admin role middleware | ✅ | `role:admin` implemented |
-| Image storage config | ⬜ | S3 vs local decision |
+| Image storage abstraction | ✅ | ChapterImageStorageService with S3/local support |
+| Chapter image upload | ✅ | Batch upload with transaction safety |
 | API caching layer | ⬜ | Redis for popular/latest endpoints |
 | Rate limit tuning | ⬜ | Per-endpoint limits |
-| Image upload implementation | ⬜ | Cover/avatar/chapter images |
+| Cover/avatar image upload | ⬜ | Manga cover + user avatar uploads |
 
 ---
 
@@ -194,30 +197,38 @@ Placeholder services exist. **NO models or migrations**.
 
 1. ~~**Phase 1**: Database Foundation~~ ✅ **DONE**
 2. ~~**Phase 2**: API Core (Manga, Chapter, Genre, Author CRUD)~~ ✅ **DONE**
-3. **Phase 3**: User Domain API (P2) - **NEXT**
+3. ~~**Phase 2.5**: Chapter Upload Actions (P1) - Admin workflow~~ ✅ **DONE**
+4. **Phase 3**: User Domain API (P2) - **NEXT**
    - Follow System
    - User Profile
    - Reading Progress
-4. **Phase 4**: Chapter Upload Actions (P1) - Admin workflow
-5. **Phase 5**: Image Upload System (P2) - Cover, avatar, chapter images
-6. **Phase 6**: Advanced Features (P2) - Discovery, filtering
-7. **Phase 7**: Community Features (P3) - Comments, ratings
+5. **Phase 4**: Cover & Avatar Upload (P2) - Remaining image uploads
+6. **Phase 5**: Advanced Features (P2) - Discovery, filtering
+7. **Phase 6**: Community Features (P3) - Comments, ratings
 
 ---
 
 ## Unresolved Questions
 
-1. **Image Storage**: S3 or local filesystem for chapter images?
-2. **Image URLs**: Signed URLs for private storage or public URLs?
+1. ~~**Image Storage**: S3 or local filesystem for chapter images?~~ ✅ **RESOLVED** - Abstracted via ChapterImageStorageInterface
+2. **Image URLs**: Signed URLs for private storage or public URLs? (Partially resolved - uses Laravel Storage URLs)
 3. **UGC Support**: Should users be able to upload manga series (not just admins)?
 4. **Notifications**: Real-time (WebSocket) or email-based for new chapter releases?
 5. **Moderation**: Auto-approve trusted uploaders or always require approval?
+6. **Cover/Avatar Storage**: Reuse ChapterImageStorageService or create separate service?
 
 ---
 
 ## Implementation Summary
 
-### What We've Built (Phase 2)
+### What We've Built (Phases 1-2.5)
+
+**Phase 1 - Database Foundation** ✅
+- Complete database schema (10+ tables)
+- Migrations with relationships
+- Model definitions with Eloquent relations
+
+**Phase 2 - API Core** ✅
 - **20 API Endpoints** across 4 controllers (Manga, Chapter, Genre, Author)
 - **8 API Resources** for data transformation
 - **6 Form Requests** for validation
@@ -225,6 +236,14 @@ Placeholder services exist. **NO models or migrations**.
 - **4 Feature Test Suites** with comprehensive coverage
 - **RBAC Middleware** for admin routes
 - **Security Fixes** (SQL injection, input validation)
+
+**Phase 2.5 - Chapter Upload Actions** ✅ (NEW!)
+- **4 Action Classes** for chapter operations (Create, Update, Delete, Reject)
+- **Storage Abstraction Layer** (S3/local with interface)
+- **Batch Image Upload** with transaction safety
+- **Image Ordering System** (zero-padded naming)
+- **Cascade Deletion** with storage cleanup
+- **62/62 Tests Passing**
 
 ### What's Next (Phase 3)
 Focus on **User Domain** to enable core user experience:

@@ -66,6 +66,7 @@ ApiRoute::version('v1', function () {
         // Chapter moderation routes
         Route::get('chapters/pending', [ChapterController::class, 'pending'])->name('api.v1.chapters.pending');
         Route::post('chapters/{chapter}/approve', [ChapterController::class, 'approve'])->name('api.v1.chapters.approve');
+        Route::post('chapters/{chapter}/reject', [ChapterController::class, 'reject'])->name('api.v1.chapters.reject');
     });
 })
     ->current()

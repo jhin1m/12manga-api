@@ -19,16 +19,25 @@ class UpdateChapterRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
+     * All fields optional - partial updates allowed.
+     * If images provided, they replace all existing images.
+     *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'number' => ['sometimes', 'numeric', 'min:0'],
-            'title' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'images' => ['sometimes', 'array'],
-            'images.*.path' => ['required_with:images', 'string'],
-            'images.*.order' => ['required_with:images', 'integer', 'min:0'],
+            'title' => ['nullable', 'string', 'max:255'],
+
+            // Optional: Replace all images
+            'images' => ['nullable', 'array', 'max:100'],
+            'images.*' => [
+                'file',
+                'image',
+                'mimes:jpeg,jpg,png,webp,gif',
+                'max:5120',
+            ],
         ];
     }
 
@@ -43,8 +52,11 @@ class UpdateChapterRequest extends FormRequest
             'number.numeric' => 'Chapter number must be a valid number.',
             'number.min' => 'Chapter number must be at least 0.',
             'images.array' => 'Images must be an array.',
-            'images.*.path.required_with' => 'Each image must have a path.',
-            'images.*.order.required_with' => 'Each image must have an order.',
+            'images.max' => 'Maximum 100 images per chapter.',
+            'images.*.file' => 'Each image must be a valid file upload.',
+            'images.*.image' => 'Each file must be an image.',
+            'images.*.mimes' => 'Images must be JPEG, PNG, WebP, or GIF.',
+            'images.*.max' => 'Each image must not exceed 5MB.',
         ];
     }
 }

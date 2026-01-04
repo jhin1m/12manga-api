@@ -5,11 +5,14 @@ use App\Domain\Manga\Models\ChapterImage;
 use App\Domain\Manga\Models\MangaSeries;
 use App\Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    Storage::fake('public');
     // Seed roles for permission system
     Role::create(['name' => 'admin', 'guard_name' => 'web']);
     Role::create(['name' => 'user', 'guard_name' => 'web']);
@@ -156,8 +159,8 @@ describe('Create Chapter (Admin)', function () {
                 'number' => 1,
                 'title' => 'Chapter 1',
                 'images' => [
-                    ['path' => 'manga/test/chapter-1/page-1.jpg', 'order' => 1],
-                    ['path' => 'manga/test/chapter-1/page-2.jpg', 'order' => 2],
+                    UploadedFile::fake()->image('page1.jpg'),
+                    UploadedFile::fake()->image('page2.jpg'),
                 ],
             ]);
 
@@ -381,7 +384,7 @@ describe('Delete Chapter (Admin)', function () {
                 'message' => 'Chapter deleted successfully',
             ]);
 
-        $this->assertSoftDeleted('chapters', [
+        $this->assertDatabaseMissing('chapters', [
             'id' => $chapter->id,
         ]);
     });

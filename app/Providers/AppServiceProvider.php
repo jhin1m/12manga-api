@@ -14,7 +14,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Bind storage interface to concrete implementation
+        $this->app->bind(
+            \App\Domain\Manga\Contracts\ChapterImageStorageInterface::class,
+            \App\Domain\Manga\Services\ChapterImageStorageService::class
+        );
     }
 
     /**
