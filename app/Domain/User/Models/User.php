@@ -6,7 +6,9 @@ namespace App\Domain\User\Models;
 
 use App\Domain\Manga\Models\Chapter;
 use App\Domain\Manga\Models\MangaSeries;
+use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -34,12 +36,13 @@ use Spatie\Sluggable\SlugOptions;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Chapter> $uploadedChapters
  * @property-read \Illuminate\Database\Eloquent\Collection<int, MangaSeries> $followedManga
  */
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens;
 
     use HasFactory;
+    use HasPanelShield;
     use HasRoles;
     use HasSlug;
     use Notifiable;

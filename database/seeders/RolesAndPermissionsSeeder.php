@@ -49,7 +49,9 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $name => $description) {
-            Permission::create([
+            // Use firstOrCreate to avoid duplicate errors
+            // Why? Makes the seeder safe to run multiple times (idempotent)
+            Permission::firstOrCreate([
                 'name' => $name,
                 'guard_name' => 'web',
             ]);
@@ -57,27 +59,48 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Create roles and assign permissions
         // Why these roles?
+        // - super_admin: Filament Shield super admin with unrestricted access
         // - admin: System administrators with full access
         // - group_member: Scanlation group members who upload chapters
         // - user: Regular users who read manga and follow series
         // - guest: For future permission checks on unauthenticated users
 
+        // Super Admin: Filament Shield super admin (bypasses all permission checks)
+        Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+
         // Admin: Has all permissions
-        $admin = Role::create(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->givePermissionTo(Permission::all());
+        $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $admin->syncPermissions(Permission::all()); // Use sync instead of give to handle re-runs
 
         // Group member: Can upload and manage their chapters
-        $groupMember = Role::create(['name' => 'group_member', 'guard_name' => 'web']);
-        $groupMember->givePermissionTo([
+        $groupMember = Role::firstOrCreate(['name' => 'group_member', 'guard_name' => 'web']);
+        $groupMember->syncPermissions([
             'upload_chapter',
         ]);
 
         // User: Regular registered user (no special permissions for now)
         // Future: May add permissions like 'rate_manga', 'comment'
-        Role::create(['name' => 'user', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
 
         // Guest: For future permission system
         // Useful for checking access without being logged in
-        Role::create(['name' => 'guest', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'guest', 'guard_name' => 'web']);
+
+        // Create default super admin user
+        // Why? Ensures there's always a user who can access the admin panel after seeding
+        // Using firstOrCreate so this is safe to run multiple times (idempotent)
+        $adminUser = \App\Domain\User\Models\User::firstOrCreate(
+            ['email' => 'admin@admin.com'], // Check if this email exists
+            [
+                'name' => 'Super Admin',
+                'password' => bcrypt('password'), // Hash the password for security
+            ]
+        );
+
+        // Assign super_admin role to this user
+        // Why super_admin? It bypasses all permission checks in Filament Shield
+        if (! $adminUser->hasRole('super_admin')) {
+            $adminUser->assignRole('super_admin');
+        }
     }
 }
